@@ -6,22 +6,29 @@ import { useQuery } from '@apollo/client';
 import { GET_POKEMON, GET_POKEMON_EVO } from '../graphql/pokemonQueries';
 import { Pokemon,PokemonResponse } from '../types/pokemon';
 import { PokemonEvolution, PokemonEvolutionsResponse } from '../types/pokemonEvo';
-import { useSearchParams, useRouter } from 'next/navigation';
+import {  useRouter, usePathname } from 'next/navigation';
 import { TbSwords } from 'react-icons/tb';
 import { GiHealthNormal } from 'react-icons/gi';
 import { CiRuler } from "react-icons/ci";
-import { FaClipboardList } from 'react-icons/fa';
 import { MdMonitorWeight } from 'react-icons/md';
 import { MdCatchingPokemon } from "react-icons/md";
 
 export default function Home() {
-  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const router = useRouter();
 
   const [search, setSearch] = useState('');
-  const [pokemonName, setPokemonName] = useState(searchParams.get('name')?.toLowerCase() || '');
+  const [pokemonName, setPokemonName] = useState('');
   const [pokemonDetail, setPokemonDetail] = useState<Pokemon | null>(null);
   const [pokemonEvo, setPokemonEvo] = useState<PokemonEvolution[] | null>(null);
+
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const name = url.searchParams.get('name')?.toLowerCase() || '';
+    setPokemonName(name);
+    setSearch(name);
+  }, [pathname]);
 
   const { data: pokemonData, loading: pokemonLoading, error: pokemonError } = useQuery<PokemonResponse>(
     GET_POKEMON,
@@ -59,14 +66,6 @@ export default function Home() {
     }
   }, [evoData]);
 
-  useEffect(() => {
-    const name = searchParams.get('name');
-    if (name) {
-      setPokemonName(name);
-      setSearch(name);
-    }
-  }, [searchParams]);
-
   const handleSearch = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (search.trim()) {
@@ -101,7 +100,7 @@ export default function Home() {
   }, []); 
 
 
-  const EvolutionComponent = ({ evo }: { evo: Pokemon }) => {
+  const EvolutionComponent = ({ evo }: { evo: PokemonEvolution }) => {
     return (
       <>
         <div 
@@ -124,8 +123,9 @@ export default function Home() {
   };
 
   //ทำ Skeleton Loading
-  const SkeletonLoader = memo(()=> (
-    <div className="space-y-4 p-4 relative">
+  const SkeletonLoader = memo(()=> {
+    return(
+      <div className="space-y-4 p-4 relative">
       <div className="flex justify-center space-x-2">
         <div className="h-6 w-16 bg-gray-300 rounded-full animate-pulse"></div>
         <div className="h-6 w-16 bg-gray-300 rounded-full animate-pulse"></div>
@@ -175,9 +175,13 @@ export default function Home() {
         </div>
       </div>
     </div>
-  ));
+    )
+  });
 
-    
+  SkeletonLoader.displayName = 'SkeletonLoader';
+
+
+
 
   return (
         <div className="w-full min-h-screen">
@@ -329,7 +333,7 @@ export default function Home() {
                           <h3 className="font-semibold">Next Evolutions:</h3>
                           <div className="grid grid-cols-3 gap-2">
                             {pokemonEvo.map((data) => (
-                              <EvolutionComponent key={data.name} evo={data} />
+                              <EvolutionComponent key={data.name} evo={data}  />
                             ))}
                           </div>
                         </div>
