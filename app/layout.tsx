@@ -22,9 +22,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="th">
-      <head>
-        <link rel="icon" href="/poke.ico" sizes="any" />
-      </head>
       <body className={`${sarabun.variable} antialiased`}>
         <ApolloWrapped>{children}</ApolloWrapped>
       </body>
